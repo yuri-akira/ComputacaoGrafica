@@ -1,173 +1,164 @@
+#ifdef __APPLE__
+#include <GLUT/glut.h>
+#else
 #include <GL/glut.h>
+#endif
+
 #include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 
-#define VELMAX 3
+GLfloat light0_pos[] = {2.0f, 2.0f, 2.0f, 1.0f};
+GLfloat white[] = {1.0f, 1.0f, 1.0f, 1.0f};
+GLfloat black[] = {0.0f, 0.0f, 0.0f, 1.0f};
 
-float anguloX = 0.0, anguloY = 0.0, anguloZ = 0.0, anguloCamera = 0.0;
-float c = 0;
-int girar = 0;
+GLfloat angleX = 0.0f;
+GLfloat angleY = 0.0f;
+GLfloat angleZ = 0.0f;
+GLfloat mouseX = 0.0;
+GLfloat mouseY = 0.0;
 
-enum
-{
-    X,
-    Y,
-    Z
-} eixo = X;
+void lightning(){
+    glLightfv(GL_LIGHT0, GL_POSITION,light0_pos);
+    glLightfv(GL_LIGHT0, GL_AMBIENT, black);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, black);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, black);
 
-void gira(void)
-{
-    switch (eixo)
-    {
-    case X:
-        anguloX += 1.0;
-        break;
-    case Y:
-        anguloY += 1.0;
-        break;
-    case Z:
-        anguloZ += c;
-        break;
-    default:
-        break;
-    }
-    glutPostRedisplay();
+    glLightf(GL_LIGHT0, GL_CONSTANT_ATTENUATION, 0.5f);
+    glLightf(GL_LIGHT0, GL_LINEAR_ATTENUATION, 0.15f);
+    glLightf(GL_LIGHT0, GL_QUADRATIC_ATTENUATION, 0.1f);
+
+    GLfloat light1_pos[] = {mouseX, mouseY, 6.0f, 1.0f};
+    glLightfv(GL_LIGHT1, GL_POSITION, light1_pos);
+    glLightfv(GL_LIGHT1, GL_DIFFUSE, white);
+    glLightfv(GL_LIGHT1, GL_SPECULAR, white);
+    GLfloat direction[] = {0.0f, 0.0f, -1.0f};
+    glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, direction);
+    glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, 15.0f);
+    glLightf(GL_LIGHT1, GL_SPOT_EXPONENT, 5.0f);
+
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+    glEnable(GL_LIGHT1);
 }
 
-void helices(){
-    ///helice 1
-    glColor3f(0.9,0.9,0.9);
 
-    glPushMatrix();
-    glTranslatef(0.0, 0.0, 0.0);
-    glRotatef(90.0, 1.0, 0.0, 0.0);
-    glPushMatrix();
-    glRotatef(120, 0.0, 1.0, 0.0);
-    glutSolidCone(0.9, 16.0, 15, 15);
-    glPopMatrix();
-    glPopMatrix();
+void init(){
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    glEnable(GL_DEPTH_TEST);
 
-    ///helice 2
-    glPushMatrix();
-    glTranslatef(0.0, 0.0,0.0);
-    glRotatef(90.0, 1.0, 0.0, 0.0);
-    glPushMatrix();
-    glRotatef(-120, 0.0, 1.0, 0.0);
-    glutSolidCone(0.9, 16.0, 15, 15);
-    glPopMatrix();
-    glPopMatrix();
-
-    ///helice 3
-    glPushMatrix();
-    glTranslatef(0.0, 0.0, 0.0);
-    glRotatef(90.0, 1.0, 0.0, 0.0);
-    glutSolidCone(0.9, 16.0, 15, 15);
-    glPopMatrix();
-
-}
-
-void corpo(){
-    glPushMatrix();
-    glScaled(0.5,8,0.5);
-    glTranslated(0,-1.3,-3);
-    glutSolidCube(3);
-    glPopMatrix();
-}
-
-void display()
-{
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    glRotatef(anguloCamera, 0.0, 1.0, 0.0);
-    corpo();
+    gluLookAt(0.0, 0.0, 1.0,
+    0.0, 0.0, 0.0,
+    0.0, 1.0, 0.0);
 
-    glPushMatrix();
-    glRotatef(90.0, 1.0, 0.0, 0.0);
-    glPopMatrix();
-    glPopMatrix();
-    glRotatef(anguloZ, 0.0, 0.0, 1.0);
-    helices();
-
-    glColor3f(0.5,0.5,0.5);
-    glutSolidSphere(2,20,20);
-
-    glutSwapBuffers();
-}
-
-void init(void)
-{
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(-25.0, 25.0, -25.0, 25.0, -250.0, 250.0);
-    glEnable(GL_NORMALIZE);
+    glOrtho(-2.0, 2.0, -2.0, 2.0, -2.0, 2.0);
+    glViewport(0, 0, 500, 500);
+    lightning();
+    glPushMatrix();
 }
 
-void keyboard(int key, int x, int y)
-{
-    switch (key)
-    {
-    case GLUT_KEY_LEFT:
-       eixo = Z;
-        c -= 0.05;
-        glutPostRedisplay();
-        break;
-    case GLUT_KEY_RIGHT:
-        eixo = Z;
-        c += 0.05;
-        glutPostRedisplay();
-        break;
+void drawSphere(){
+    GLfloat shininess;
+    GLfloat diffuse[4];
+    GLfloat specular[4];
+
+    shininess = 65.0;
+    diffuse[0] = 0.65;
+    diffuse[1] = 0.0;
+    diffuse[2] = 0.0;
+    diffuse[3] = 1.0;
+    specular[0] = 1.0;
+    specular[1] = 1.0;
+    specular[2] = 1.0;
+    specular[3] = 1.0;
+    glMaterialfv(GL_FRONT,GL_AMBIENT_AND_DIFFUSE,diffuse);
+    glMaterialfv(GL_FRONT,GL_SPECULAR,specular);
+    glMaterialf(GL_FRONT,GL_SHININESS,shininess);
+
+    glutSolidSphere(0.25,40,40);
+
+    glEnd();
+}
+
+void displayFunc() {
+        GLfloat diffuse[4];
+        GLfloat specular[4];
+        GLfloat ns;
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        gluLookAt(0.0, 0.0, 1.0,
+                  0.0, 0.0, 0.0,
+                  0.0, 1.0, 0.0);
+
+        glPushMatrix();
+        glRotatef(0.0,1.0,0.0,0.0);
+        glRotatef(0.0,0.0,1.0,0.0);
+        glRotatef(angleZ,0.0,0.0,1.0);
+
+        glPushMatrix();
+        glTranslatef(-1.5,0.0,0.0);
+        drawSphere();
+        glPopMatrix();
+
+        glPushMatrix();
+        glTranslatef (1.5,0.0,0.0);
+        drawSphere();
+        glPopMatrix();
+
+        glPushMatrix();
+        glTranslatef(0.0,-1.5,0.0);
+        drawSphere();
+        glPopMatrix();
+
+        glPushMatrix();
+        glTranslatef(0.0,1.5,0.0);
+        drawSphere();
+        glPopMatrix();
+
+        glPopMatrix();
+
+        lightning();
+        glFlush();
+}
+
+
+void Timer(int value){
+    angleZ+=5.0f;
+    glutPostRedisplay();
+    glutTimerFunc(15,Timer, 1.0);
+}
+
+void mouseFunc(int botao, int estado, int x, int y){
+    switch(botao){
+    case GLUT_LEFT_BUTTON:
+        if(estado== GLUT_DOWN){
+            mouseX=(((float)x/((float)500/2))-1)*2;
+            mouseY=-(((float)y/((float)500/2))-1)*2;
+        }
+                break;
     default:
         break;
     }
-}
-
-void acelera(){
-    if(c!= VELMAX){
-           eixo = Z;
-    c+= 0.03;
-    }else
-    c = VELMAX;
-
-}
-
-void Timer(int value){
-    if(girar == true){
-    acelera();
     glutPostRedisplay();
-    glutTimerFunc(1000,Timer, 0.001);
-    }
 }
 
-void mouse_button(int button, int state, int x, int y)
-{
-    if (button == GLUT_LEFT_BUTTON)
-    {
-        girar = true;
-        glutTimerFunc(1,Timer,1);
-    }
-    else if (button == GLUT_RIGHT_BUTTON)
-    {
-        girar = false;
-        eixo = Z;
-        c = 0;
-        glutPostRedisplay();
-    }
-}
 
-int main(int argc, char *argv[])
-{
-    glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
-    glutInitWindowSize(500, 500);
-    glutInitWindowPosition(100, 50);
-    glutCreateWindow("Catavento");
-    glutIdleFunc(gira);
-    glutDisplayFunc(display);
-
-    glutSpecialFunc(keyboard);
-    glutMouseFunc(mouse_button);
+int main(int argc, char *argv[]){
+    glutInit(&argc,argv);
+    glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB | GLUT_DEPTH);
+    glutInitWindowPosition(50,50);
+    glutInitWindowSize(500,500);
+    glutCreateWindow("Iluminacao");
+    glutDisplayFunc(displayFunc);
+    glutMouseFunc(mouseFunc);
+    glutTimerFunc(33, Timer, 1);
     init();
-    glEnable(GL_DEPTH_TEST);
     glutMainLoop();
     return 0;
 }
