@@ -61,7 +61,7 @@ void init(){
     glPushMatrix();
 }
 
-void cube(){
+void drawSphere(){
     GLfloat shininess;   //Coeficiente de reflexão da luz ambiente k_a
     GLfloat diffuse[4];  //Coeficiente de reflexão difusa k_d
     GLfloat specular[4]; //Coeficiente de reflexão especular k_s
@@ -103,22 +103,22 @@ void displayFunc() {
 
         glPushMatrix();
         glTranslatef(-1.5,0.0,0.0);
-        cube();
+        drawSphere();
         glPopMatrix();
 
         glPushMatrix();
         glTranslatef (1.5,0.0,0.0);
-        cube();
+        drawSphere();
         glPopMatrix();
 
         glPushMatrix();
         glTranslatef(0.0,-1.5,0.0);
-        cube();
+        drawSphere();
         glPopMatrix();
 
         glPushMatrix();
         glTranslatef(0.0,1.5,0.0);
-        cube();
+        drawSphere();
         glPopMatrix();
 
         glPopMatrix();
